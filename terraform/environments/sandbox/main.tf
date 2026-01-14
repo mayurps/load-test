@@ -13,17 +13,19 @@ module "vpc" {
   tags                  = var.common_tags
 }
 
-# ECR module - Re-enable if you have ECR permissions
-module "ecr" {
-  source = "../../modules/ecr"
-
-  repository_name       = var.ecr_repository_name
-  image_tag_mutability  = var.ecr_image_tag_mutability
-  scan_on_push          = var.ecr_scan_on_push
-  encryption_type       = var.ecr_encryption_type
-  image_retention_count = var.ecr_image_retention_count
-  tags                  = var.common_tags
-}
+# ECR is blocked in this sandbox (explicit deny on ecr:GetAuthorizationToken)
+# Using GitHub Container Registry (ghcr.io) instead - no AWS permissions needed
+#
+# module "ecr" {
+#   source = "../../modules/ecr"
+#
+#   repository_name       = var.ecr_repository_name
+#   image_tag_mutability  = var.ecr_image_tag_mutability
+#   scan_on_push          = var.ecr_scan_on_push
+#   encryption_type       = var.ecr_encryption_type
+#   image_retention_count = var.ecr_image_retention_count
+#   tags                  = var.common_tags
+# }
 
 # IAM module disabled - sandbox blocks programmatic IAM creation
 # Create IAM user manually in AWS Console instead (see MANUAL_IAM_SETUP.md)
@@ -36,3 +38,18 @@ module "ecr" {
 #   create_access_key   = var.iam_create_access_key
 #   tags                = var.common_tags
 # }
+
+# EC2 module for running the application
+module "ec2" {
+  source = "../../modules/ec2"
+
+  environment    = var.environment
+  vpc_id         = module.vpc.vpc_id
+  subnet_id      = module.vpc.public_subnet_ids[0]
+  instance_type  = var.ec2_instance_type
+  github_user    = var.github_username
+  github_repo    = var.github_repo_name
+  container_port = var.container_port
+  create_eip     = var.ec2_create_eip
+  tags           = var.common_tags
+}

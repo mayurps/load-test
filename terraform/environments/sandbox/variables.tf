@@ -110,3 +110,33 @@ variable "iam_create_access_key" {
   type        = bool
   default     = true
 }
+
+# EC2 Variables
+variable "ec2_instance_type" {
+  description = "EC2 instance type"
+  type        = string
+  default     = "t3.micro"
+}
+
+variable "ec2_create_eip" {
+  description = "Create Elastic IP for EC2"
+  type        = bool
+  default     = true
+}
+
+variable "github_username" {
+  description = "GitHub username for GHCR"
+  type        = string
+}
+
+variable "github_repo_name" {
+  description = "GitHub repository name"
+  type        = string
+  default     = "load-test"
+}
+
+variable "container_port" {
+  description = "Port the container exposes"
+  type        = number
+  default     = 8080
+}

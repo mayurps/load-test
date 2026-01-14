@@ -1,43 +1,120 @@
-# Quick Start Guide
+# Quick Start Guide - Deploy to EC2 from GHCR
 
-## Initial Setup (First Time)
+## Overview
+
+This setup deploys your Docker container from GitHub Container Registry to AWS EC2:
+- ✅ VPC infrastructure via Terraform
+- ✅ Container storage in GHCR (free, no AWS needed)
+- ✅ Automatic container deployment to EC2
+- ✅ No ECR needed (sandbox blocks it anyway)
+
+## Setup Steps
+
+### 1. Update GitHub Username
+
+Edit `terraform/environments/sandbox/terraform.tfvars`:
+
+```hcl
+github_username = "your-github-username"  # IMPORTANT: Replace this!
+```
+
+### 2. Deploy Infrastructure
 
 ```bash
-# 1. Deploy infrastructure (VPC + ECR)
 cd terraform/environments/sandbox
 terraform init
 terraform apply
 ```
 
-## Setup GitHub Secrets (Choose One Method)
+This creates:
+- VPC and networking
+- EC2 instance
+- Automatically pulls your container from GHCR
+- Starts your app on port 8080
 
-### Method A: Use Your Sandbox cloud_user (Easiest) ⭐
-
-See [USE_CLOUD_USER.md](USE_CLOUD_USER.md) for detailed steps.
-
-**Quick version**:
-1. AWS Console → IAM → Users → cloud_user → Security credentials
-2. Create access key
-3. Add to GitHub: Settings → Secrets and variables → Actions
-   - `AWS_ACCESS_KEY_ID`
-   - `AWS_SECRET_ACCESS_KEY`
-
-### Method B: Create New IAM User Manually
-
-See [MANUAL_IAM_SETUP.md](MANUAL_IAM_SETUP.md) if you need a dedicated user with limited ECR-only permissions.
-
-## Deploy
+### 3. Get Your Application URL
 
 ```bash
-# Push code to trigger build
-git add .
-git commit -m "Initial setup"
-git push origin main
-
-# Watch build in GitHub Actions tab
+terraform output application_url
 ```
 
-Your Docker image will be automatically pushed to ECR! ✅
+Example output: `http://54.123.45.67:8080`
+
+### 4. Test It
+
+```bash
+# Copy the URL from step 3 and test
+curl http://YOUR_EC2_IP:8080
+```
+
+You should see your app responding! 🎉
+
+## How It Works
+
+1. **Push code** → GitHub Actions builds Docker image
+2. **Image stored** → GitHub Container Registry (ghcr.io)
+3. **EC2 pulls** → Container from GHCR on boot
+4. **App runs** → Accessible on port 8080
+
+## Workflow
+
+### Make Changes
+
+```bash
+# Edit your code
+vim server.js
+
+# Commit and push
+git add .
+git commit -m "Update server"
+git push origin main
+```
+
+### GitHub Actions automatically:
+1. Builds new Docker image
+2. Pushes to GHCR with `:latest` tag
+
+### Update EC2 (Manual for now)
+
+```bash
+# Get EC2 IP
+EC2_IP=$(cd terraform/environments/sandbox && terraform output -raw ec2_public_ip)
+
+# SSH to EC2 (if you have key)
+ssh ec2-user@$EC2_IP
+
+# Run update script
+sudo /usr/local/bin/update-app.sh
+```
+
+## Costs
+
+- **t3.micro EC2**: ~$8/month (free tier: 750 hours/month)
+- **NAT Gateway**: ~$32/month
+- **Total**: ~$40/month (~$8/month with free tier)
+
+## What's Created
+
+- ✅ VPC (10.0.0.0/24)
+- ✅ Public/private subnets
+- ✅ Internet Gateway
+- ✅ NAT Gateway
+- ✅ EC2 instance (t3.micro)
+- ✅ Elastic IP (stable address)
+- ✅ Security group (ports 8080, 22)
+
+## Cleanup
+
+```bash
+cd terraform/environments/sandbox
+terraform destroy
+```
+
+## See Also
+
+- [EC2_DEPLOYMENT.md](EC2_DEPLOYMENT.md) - Complete EC2 deployment guide
+- [SANDBOX_SUMMARY.md](SANDBOX_SUMMARY.md) - Sandbox limitations explained
+- [GHCR_SETUP.md](GHCR_SETUP.md) - GitHub Container Registry details
 
 ## Daily Workflow
 
