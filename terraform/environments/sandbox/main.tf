@@ -13,21 +13,21 @@ module "vpc" {
   tags                  = var.common_tags
 }
 
-# ECR module disabled for sandbox environments with ECR restrictions
-# Using GitHub Container Registry (ghcr.io) instead
-# 
-# module "ecr" {
-#   source = "../../modules/ecr"
-# 
-#   repository_name       = var.ecr_repository_name
-#   image_tag_mutability  = var.ecr_image_tag_mutability
-#   scan_on_push          = var.ecr_scan_on_push
-#   encryption_type       = var.ecr_encryption_type
-#   image_retention_count = var.ecr_image_retention_count
-#   tags                  = var.common_tags
-# }
+# ECR module - Re-enable if you have ECR permissions
+module "ecr" {
+  source = "../../modules/ecr"
 
-# IAM module disabled for sandbox environments with restricted permissions
+  repository_name       = var.ecr_repository_name
+  image_tag_mutability  = var.ecr_image_tag_mutability
+  scan_on_push          = var.ecr_scan_on_push
+  encryption_type       = var.ecr_encryption_type
+  image_retention_count = var.ecr_image_retention_count
+  tags                  = var.common_tags
+}
+
+# IAM module disabled - sandbox blocks programmatic IAM creation
+# Create IAM user manually in AWS Console instead (see MANUAL_IAM_SETUP.md)
+# 
 # module "iam" {
 #   source = "../../modules/iam"
 # 

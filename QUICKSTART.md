@@ -3,23 +3,41 @@
 ## Initial Setup (First Time)
 
 ```bash
-# 1. Configure AWS credentials (if using full AWS, not sandbox)
-# For sandbox: skip this, AWS is already configured in your environment
-
-# 2. Deploy infrastructure (VPC only in sandbox)
+# 1. Deploy infrastructure (VPC + ECR)
 cd terraform/environments/sandbox
 terraform init
 terraform apply
+```
 
-# 3. Push code to trigger build (uses GitHub Container Registry)
+## Setup GitHub Secrets (Choose One Method)
+
+### Method A: Use Your Sandbox cloud_user (Easiest) ⭐
+
+See [USE_CLOUD_USER.md](USE_CLOUD_USER.md) for detailed steps.
+
+**Quick version**:
+1. AWS Console → IAM → Users → cloud_user → Security credentials
+2. Create access key
+3. Add to GitHub: Settings → Secrets and variables → Actions
+   - `AWS_ACCESS_KEY_ID`
+   - `AWS_SECRET_ACCESS_KEY`
+
+### Method B: Create New IAM User Manually
+
+See [MANUAL_IAM_SETUP.md](MANUAL_IAM_SETUP.md) if you need a dedicated user with limited ECR-only permissions.
+
+## Deploy
+
+```bash
+# Push code to trigger build
 git add .
 git commit -m "Initial setup"
 git push origin main
 
-# No GitHub secrets needed! Uses GITHUB_TOKEN automatically ✅
+# Watch build in GitHub Actions tab
 ```
 
-**Note**: Sandbox uses GitHub Container Registry (ghcr.io) instead of ECR due to AWS sandbox restrictions. See [GHCR_SETUP.md](GHCR_SETUP.md) for details.
+Your Docker image will be automatically pushed to ECR! ✅
 
 ## Daily Workflow
 
